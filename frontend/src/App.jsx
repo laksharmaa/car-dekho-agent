@@ -3,8 +3,9 @@ import {
   Search, Gauge, Fuel, Shield, ChevronRight,
   RotateCcw, Car, Zap, X
 } from "lucide-react";
+// import API URL from .env
 
-const API_URL = "http://localhost:5000/api/chat";
+const API_URL = import.meta.env.VITE_API_URL;
 
 const SUGGESTIONS = [
   "Best SUV under ₹15 lakhs for a family",
@@ -181,7 +182,7 @@ export default function App() {
     setMessages((prev) => [...prev, { role: "user", content: q }]);
     setLoading(true);
     try {
-      const res = await fetch(API_URL, {
+      const res = await fetch(`${API_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: q }),

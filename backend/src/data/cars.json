@@ -1,0 +1,292 @@
+[
+    {
+        "name": "Tata Nexon",
+        "brand": "Tata",
+        "bodyType": "SUV",
+        "price": 1200000,
+        "mileage": 20,
+        "safetyRating": 5,
+        "fuelType": "Petrol",
+        "description": "Excellent safety and family usage."
+    },
+    {
+        "name": "Hyundai Creta",
+        "brand": "Hyundai",
+        "bodyType": "SUV",
+        "price": 1450000,
+        "mileage": 18,
+        "safetyRating": 4,
+        "fuelType": "Petrol",
+        "description": "Feature rich family SUV."
+    },
+    {
+        "name": "Maruti Grand Vitara",
+        "brand": "Maruti",
+        "bodyType": "SUV",
+        "price": 1500000,
+        "mileage": 27,
+        "safetyRating": 4,
+        "fuelType": "Hybrid",
+        "description": "Fuel efficient SUV for long drives."
+    },
+    {
+        "name": "Kia Seltos",
+        "brand": "Kia",
+        "bodyType": "SUV",
+        "price": 1350000,
+        "mileage": 19,
+        "safetyRating": 4,
+        "fuelType": "Petrol",
+        "description": "Stylish and feature-packed SUV."
+    },
+    {
+        "name": "Mahindra XUV700",
+        "brand": "Mahindra",
+        "bodyType": "SUV",
+        "price": 1600000,
+        "mileage": 17,
+        "safetyRating": 5,
+        "fuelType": "Petrol",
+        "description": "Powerful SUV with advanced features."
+    },
+    {
+        "name": "Honda City",
+        "brand": "Honda",
+        "bodyType": "Sedan",
+        "price": 1100000,
+        "mileage": 17,
+        "safetyRating": 4,
+        "fuelType": "Petrol",
+        "description": "Reliable and comfortable sedan."
+    },
+    {
+        "name": "Maruti Ciaz",
+        "brand": "Maruti",
+        "bodyType": "Sedan",
+        "price": 1050000,
+        "mileage": 20,
+        "safetyRating": 4,
+        "fuelType": "Petrol",
+        "description": "Spacious and fuel-efficient sedan."
+    },
+    {
+        "name": "Hyundai Verna",
+        "brand": "Hyundai",
+        "bodyType": "Sedan",
+        "price": 1150000,
+        "mileage": 18,
+        "safetyRating": 4,
+        "fuelType": "Petrol",
+        "description": "Stylish sedan with modern features."
+    },
+    {
+        "name": "Tata Tigor",
+        "brand": "Tata",
+        "bodyType": "Sedan",
+        "price": 900000,
+        "mileage": 21,
+        "safetyRating": 4,
+        "fuelType": "Petrol",
+        "description": "Compact sedan with good mileage."
+    },
+    {
+        "name": "Maruti Swift",
+        "brand": "Maruti",
+        "bodyType": "Hatchback",
+        "price": 600000,
+        "mileage": 22,
+        "safetyRating": 4,
+        "fuelType": "Petrol",
+        "description": "Popular hatchback with great mileage."
+    },
+    {
+        "name": "Hyundai i20",
+        "brand": "Hyundai",
+        "bodyType": "Hatchback",
+        "price": 700000,
+        "mileage": 20,
+        "safetyRating": 4,
+        "fuelType": "Petrol",
+        "description": "Premium hatchback with stylish design."
+    },
+    {
+        "name": "Tata Altroz",
+        "brand": "Tata",
+        "bodyType": "Hatchback",
+        "price": 750000,
+        "mileage": 19,
+        "safetyRating": 5,
+        "fuelType": "Petrol",
+        "description": "Safe and spacious hatchback."
+    },
+    {
+        "name": "Maruti Baleno",
+        "brand": "Maruti",
+        "bodyType": "Hatchback",
+        "price": 800000,
+        "mileage": 21,
+        "safetyRating": 4,
+        "fuelType": "Petrol",
+        "description": "Premium hatchback with good features."
+    },
+    {
+        "name": "Kia Sonet",
+        "brand": "Kia",
+        "bodyType": "SUV",
+        "price": 900000,
+        "mileage": 18,
+        "safetyRating": 4,
+        "fuelType": "Petrol",
+        "description": "Compact SUV with stylish design."
+    },
+    {
+        "name": "Renault Kwid",
+        "brand": "Renault",
+        "bodyType": "Hatchback",
+        "price": 400000,
+        "mileage": 25,
+        "safetyRating": 3,
+        "fuelType": "Petrol",
+        "description": "Affordable hatchback with good mileage."
+    },
+    {
+        "name": "Maruti Alto",
+        "brand": "Maruti",
+        "bodyType": "Hatchback",
+        "price": 300000,
+        "mileage": 22,
+        "safetyRating": 3,
+        "fuelType": "Petrol",
+        "description": "Entry-level hatchback with decent mileage."
+    },
+    {
+        "name": "Tata Punch",
+        "brand": "Tata",
+        "bodyType": "SUV",
+        "price": 850000,
+        "mileage": 20,
+        "safetyRating": 4,
+        "fuelType": "Petrol",
+        "description": "Compact SUV with good safety features."
+    },
+    {
+        "name": "Hyundai Venue",
+        "brand": "Hyundai",
+        "bodyType": "SUV",
+        "price": 950000,
+        "mileage": 19,
+        "safetyRating": 4,
+        "fuelType": "Petrol",
+        "description": "Stylish and feature-rich compact SUV."
+    },
+    {
+        "name": "Maruti Ertiga",
+        "brand": "Maruti",
+        "bodyType": "MPV",
+        "price": 1100000,
+        "mileage": 18,
+        "safetyRating": 4,
+        "fuelType": "Petrol",
+        "description": "Spacious MPV for family use."
+    },
+    {
+        "name": "Kia Carnival",
+        "brand": "Kia",
+        "bodyType": "MPV",
+        "price": 2500000,
+        "mileage": 15,
+        "safetyRating": 5,
+        "fuelType": "Petrol",
+        "description": "Premium MPV with luxurious features."
+    },
+    {
+        "name": "Tata Hexa",
+        "brand": "Tata",
+        "bodyType": "SUV",
+        "price": 1400000,
+        "mileage": 16,
+        "safetyRating": 4,
+        "fuelType": "Diesel",
+        "description": "Rugged SUV with good off-road capabilities."
+    },
+    {
+        "name": "Mercedes-Benz C-Class",
+        "brand": "Mercedes-Benz",
+        "bodyType": "Sedan",
+        "price": 4000000,
+        "mileage": 12,
+        "safetyRating": 5,
+        "fuelType": "Petrol",
+        "description": "Luxury sedan with premium features."
+    },
+    {
+        "name": "BMW X5",
+        "brand": "BMW",
+        "bodyType": "SUV",
+        "price": 5000000,
+        "mileage": 10,
+        "safetyRating": 5,
+        "fuelType": "Petrol",
+        "description": "High-performance luxury SUV."
+    },
+    {
+        "name": "Audi A6",
+        "brand": "Audi",
+        "bodyType": "Sedan",
+        "price": 4500000,
+        "mileage": 11,
+        "safetyRating": 5,
+        "fuelType": "Petrol",
+        "description": "Elegant sedan with advanced technology."
+    },
+    {
+        "name": "Jaguar F-Pace",
+        "brand": "Jaguar",
+        "bodyType": "SUV",
+        "price": 5500000,
+        "mileage": 9,
+        "safetyRating": 5,
+        "fuelType": "Petrol",
+        "description": "Luxury SUV with sporty performance."
+    },
+    {
+        "name": "Lexus RX",
+        "brand": "Lexus",
+        "bodyType": "SUV",
+        "price": 4800000,
+        "mileage": 10,
+        "safetyRating": 5,
+        "fuelType": "Hybrid",
+        "description": "Luxury hybrid SUV with comfort and efficiency."
+    },
+    {
+        "name": "Porsche Cayenne",
+        "brand": "Porsche",
+        "bodyType": "SUV",
+        "price": 6000000,
+        "mileage": 8,
+        "safetyRating": 5,
+        "fuelType": "Petrol",
+        "description": "High-performance luxury SUV with sporty design."
+    },
+    {
+        "name": "Tesla Model S",
+        "brand": "Tesla",
+        "bodyType": "Sedan",
+        "price": 7000000,
+        "mileage": 0,
+        "safetyRating": 5,
+        "fuelType": "Electric",
+        "description": "Luxury electric sedan with long range and advanced features."
+    },
+    {
+        "name": "Audi Q7",
+        "brand": "Audi",
+        "bodyType": "SUV",
+        "price": 5500000,
+        "mileage": 9,
+        "safetyRating": 5,
+        "fuelType": "Diesel",
+        "description": "Spacious luxury SUV with powerful performance."
+    }
+]
