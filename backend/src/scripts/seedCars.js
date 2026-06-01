@@ -1,4 +1,11 @@
-require("dotenv").config();
+const fs = require("fs");
+const path = require("path");
+
+const envPath = path.resolve(__dirname, "../../.env");
+const fallbackEnvPath = path.resolve(__dirname, "../../../.env");
+const configPath = fs.existsSync(envPath) ? envPath : fallbackEnvPath;
+
+require("dotenv").config({ path: configPath });
 
 const connectDB =
   require("../config/db");
@@ -7,7 +14,7 @@ const Car =
   require("../models/Car");
 
 const cars =
-  require("./data/cars");
+  require("../data/cars");
 
 const {
   generateEmbedding,

@@ -288,5 +288,86 @@
         "safetyRating": 5,
         "fuelType": "Diesel",
         "description": "Spacious luxury SUV with powerful performance."
+    },
+    {
+        "name": "Maruti Suzuki Dzire",
+        "brand": "Maruti Suzuki",
+        "bodyType": "Sedan",
+        "price": 800000,
+        "mileage": 24,
+        "safetyRating": 4,
+        "fuelType": "Petrol",
+        "description": "Compact sedan with good mileage and features."
+    },
+    {
+        "name": "Hyundai Santro",
+        "brand": "Hyundai",
+        "bodyType": "Hatchback",
+        "price": 500000,
+        "mileage": 20,
+        "safetyRating": 3,
+        "fuelType": "Petrol",
+        "description": "Affordable hatchback with decent features."
+    },
+    {
+        "name": "Tata Harrier",
+        "brand": "Tata",
+        "bodyType": "SUV",
+        "price": 1700000,
+        "mileage": 16,
+        "safetyRating": 4,
+        "fuelType": "Diesel",
+        "description": "Mid-size SUV with strong performance and safety."
+    },
+    {
+        "name": "Kia Carnival",
+        "brand": "Kia",
+        "bodyType": "MPV",
+        "price": 2500000,
+        "mileage": 15,
+        "safetyRating": 5,
+        "fuelType": "Petrol",
+        "description": "Premium MPV with luxurious features."
+    },
+    {
+        "name": "Renault Duster",
+        "brand": "Renault",
+        "bodyType": "SUV",
+        "price": 900000,
+        "mileage": 19,
+        "safetyRating": 4,
+        "fuelType": "Diesel",
+        "description": "Rugged SUV with good off-road capabilities."
+    },
+    {
+        "name": "Maruti Suzuki Swift Dzire",
+        "brand": "Maruti Suzuki",
+        "bodyType": "Sedan",
+        "price": 800000,
+        "mileage": 24,
+        "safetyRating": 4,
+        "fuelType": "Petrol",
+        "description": "Compact sedan with good mileage and features."
+    },
+    {
+        "name": "Hyundai Aura",
+        "brand": "Hyundai",
+        "bodyType": "Sedan",
+        "price": 900000,
+        "mileage": 20,
+        "safetyRating": 4,
+        "fuelType": "Petrol",
+        "description": "Stylish sedan with modern features."
+    },
+    {
+        "name": "Tata Tigor EV",
+        "brand": "Tata",
+        "bodyType": "Sedan",
+        "price": 1200000,
+        "mileage": 0,
+        "safetyRating": 4,
+        "fuelType": "Electric",
+        "description": "Electric sedan with decent range and features."
     }
+
 ]
