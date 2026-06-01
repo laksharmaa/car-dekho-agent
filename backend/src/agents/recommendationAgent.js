@@ -1,17 +1,7 @@
-const {
-  generateRecommendation,
-} = require("../services/groqService");
+const { generateRecommendation } = require("../services/groqService");
 
-const recommendCars = async (
-  userQuery,
-  cars
-) => {
-  return generateRecommendation(
-    userQuery,
-    cars
-  );
+const recommendCars = async (userQuery, cars, history = []) => {
+  return generateRecommendation(userQuery, cars, history);
 };
 
-module.exports = {
-  recommendCars,
-};
+module.exports = { recommendCars };

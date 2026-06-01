@@ -8,7 +8,7 @@ const searchCars = async (queryEmbedding) => {
         path: "embedding",
         queryVector: queryEmbedding,
         numCandidates: 50,
-        limit: 3,
+        limit: 4,
       },
     },
     {
