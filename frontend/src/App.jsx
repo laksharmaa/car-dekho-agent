@@ -303,7 +303,7 @@ export default function App() {
           </div>
           <div className="leading-none">
             <span className="font-bold text-[15px] text-[var(--text)] tracking-tight">car</span>
-            <span className="font-bold text-[15px] text-[var(--red)] tracking-tight">wise</span>
+            <span className="font-bold text-[15px] text-[var(--red)] tracking-tight">dekho</span>
           </div>
         </div>
 
