@@ -3,6 +3,7 @@ const cors = require("cors");
 
 const chatRoutes = require("./routes/chatRoutes");
 const sessionRoutes = require("./routes/sessionRoutes");
+const { globalLimiter, chatLimiter, sessionLimiter } = require("./middleware/rateLimiter");
 
 const app = express();
 
@@ -17,7 +18,11 @@ app.use(
 
 app.use(express.json());
 
-app.use("/api/chat", chatRoutes);
-app.use("/api/session", sessionRoutes);
+// Global limiter — hits every route
+app.use(globalLimiter);
+
+// Route-specific limiters applied before route handlers
+app.use("/api/chat", chatLimiter, chatRoutes);
+app.use("/api/session", sessionLimiter, sessionRoutes);
 
 module.exports = app;

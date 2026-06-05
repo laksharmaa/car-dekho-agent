@@ -1,11 +1,12 @@
 const Groq = require("groq-sdk");
-const dotenv = require("dotenv");
-
-dotenv.config();
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 const generateRecommendation = async (userQuery, cars, history = []) => {
+  if (!cars || cars.length === 0) {
+    return "I couldn't find any cars matching your exact requirements in our database. Try adjusting your budget or preferences slightly and I'll search again.";
+  }
+
   const carContext = cars
     .map(
       (car, i) =>
@@ -15,24 +16,24 @@ const generateRecommendation = async (userQuery, cars, history = []) => {
     )
     .join("\n");
 
-  // Convert saved history into Groq message format
   const historyMessages = history.map((m) => ({
     role: m.role,
-    content: m.role === "assistant" ? m.content : m.content,
+    content: m.content,
   }));
 
   const messages = [
     {
       role: "system",
-      content: `You are CarWise, an expert AI car recommendation assistant for the Indian market. 
-You help users find the perfect car based on their needs, budget, and preferences.
-Be conversational, helpful, and concise. Reference previous messages in the conversation when relevant.
-When recommending cars, mention specific models from the provided list and explain why they suit the user's needs.`,
+      content: `You are CarWise, an expert AI car recommendation assistant for the Indian market.
+The cars listed below have ALREADY been filtered to match the user's budget and preferences — every car shown is within their constraints.
+Your job is to recommend from ONLY these cars. Do not suggest cars outside this list.
+Be conversational, specific, and helpful. Explain why each recommended car suits the user's stated needs.
+If only one car matches, confidently recommend that one. Reference conversation history when relevant.`,
     },
     ...historyMessages,
     {
       role: "user",
-      content: `User query: "${userQuery}"\n\nMatched cars from database:\n${carContext}\n\nProvide a helpful recommendation based on the conversation context and these cars.`,
+      content: `User query: "${userQuery}"\n\nCars within the user's requirements:\n${carContext}\n\nRecommend the best option(s) from this list and explain why.`,
     },
   ];
 

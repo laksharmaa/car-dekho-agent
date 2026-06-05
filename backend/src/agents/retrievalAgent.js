@@ -3,9 +3,10 @@ const {
 } = require("../services/vectorSearchService");
 
 const retrieveCars = async (
-  queryEmbedding
+  queryEmbedding,
+  filters
 ) => {
-  return searchCars(queryEmbedding);
+  return searchCars(queryEmbedding, filters);
 };
 
 module.exports = {

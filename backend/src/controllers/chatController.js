@@ -12,8 +12,30 @@ const chat = async (req, res) => {
       return res.status(400).json({ message: "Query required" });
     }
 
+    // Extract embedding + structured filters from query
     const requirement = await processRequirement(query);
-    const cars = await retrieveCars(requirement.embedding);
+
+    console.log("Extracted requirements:", {
+      maxPrice: requirement.maxPrice,
+      minPrice: requirement.minPrice,
+      bodyType: requirement.bodyType,
+      fuelType: requirement.fuelType,
+      minMileage: requirement.minMileage,
+      minSafetyRating: requirement.minSafetyRating,
+      useCase: requirement.useCase,
+    });
+
+    // Pass filters into retrieval so DB enforces hard constraints
+    const filters = {
+      maxPrice: requirement.maxPrice,
+      minPrice: requirement.minPrice,
+      bodyType: requirement.bodyType,
+      fuelType: requirement.fuelType,
+      minMileage: requirement.minMileage,
+      minSafetyRating: requirement.minSafetyRating,
+    };
+
+    const cars = await retrieveCars(requirement.embedding, filters);
     const recommendation = await recommendCars(query, cars, history || []);
 
     await Session.findOneAndUpdate(
