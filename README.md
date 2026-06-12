@@ -10,13 +10,13 @@ Instead of forcing users to browse hundreds of vehicles and filters, CarDekho Ag
 
 > "Best hatchback for daily commute with high safety ratings"
 
-The system uses Retrieval-Augmented Generation (RAG), Vector Search, and a multi-agent architecture to understand user requirements, retrieve relevant vehicles, and generate personalized recommendations.
+The system uses Retrieval-Augmented Generation (RAG), Vector Search, and a multi-agent architecture orchestrated with **LangGraph** to understand user requirements, retrieve relevant vehicles, and generate personalized recommendations.
 
 ---
 
 ## Architecture Overview
 
-The application follows a 3-Agent RAG Architecture:
+The application follows a 3-Agent RAG Architecture, orchestrated as a LangGraph state graph with a conditional retry path:
 
 ```text
 User Query
@@ -24,7 +24,7 @@ User Query
     ▼
 Requirement Agent
     │
-    ├── Understands user intent
+    ├── Understands user intent (LangChain structured output)
     └── Generates semantic embedding
     │
     ▼
@@ -33,6 +33,8 @@ Retrieval Agent
     ├── MongoDB Atlas Vector Search
     ├── Cosine Similarity Search
     └── Retrieves Top Matching Cars
+    │
+    ├── 0 results + budget filter? ──▶ Relax budget by 20% ──▶ Retry retrieval (once)
     │
     ▼
 Recommendation Agent
@@ -44,6 +46,8 @@ Recommendation Agent
     ▼
 Response
 ```
+
+See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for the full LangGraph node/edge breakdown.
 
 ---
 
@@ -65,6 +69,8 @@ Response
 * Xenova/all-MiniLM-L6-v2
 * MongoDB Atlas Vector Search
 * Llama 3.3 70B Versatile
+* LangChain (structured output parsing)
+* LangGraph (agent orchestration)
 
 ### Authentication
 
@@ -98,6 +104,8 @@ Xenova/all-MiniLM-L6-v2
 ```
 
 The embedding captures the semantic meaning of the request rather than relying on keyword matching.
+
+In parallel, the same query is passed to a LangChain `ChatGroq` model bound to a Zod schema via `withStructuredOutput`, which extracts hard filters (max/min price, body type, fuel type, minimum mileage, minimum safety rating, use case) directly as a validated object — no manual JSON parsing.
 
 ---
 
@@ -149,6 +157,18 @@ It generates:
 * Reasoning
 
 This ensures recommendations remain grounded in retrieved vehicle data.
+
+---
+
+## Vehicle Comparison
+
+Users can select up to **2 cars** from any recommendation result (across messages) and compare them side-by-side in a table view.
+
+* Each car card has a "Compare" toggle. Selecting a 2nd car while 2 are already selected is disabled until one is removed.
+* A persistent compare bar shows the currently selected cars as removable chips, with "Compare Now" enabled once exactly 2 are selected.
+* The comparison modal renders a spec table (Price, Mileage, Safety Rating, Body Type, Fuel Type, Description) and highlights the better value per row (lower price, higher mileage/safety) with a trophy indicator.
+
+This is a frontend-only feature — no additional backend endpoints were needed since car objects are already returned in full with each chat response.
 
 ---
 
@@ -301,10 +321,11 @@ I focused on building an opinionated AI-first car discovery experience rather th
 Key features:
 
 * Natural Language Search
-* Multi-Agent Architecture
+* Multi-Agent Architecture orchestrated with LangGraph
 * RAG Pipeline
 * Vector Search
 * Conversational Recommendations
+* Vehicle Comparison (table view, up to 2 cars)
 * Authentication
 * Persistent Chat History
 
@@ -316,7 +337,6 @@ The goal was to help users move from uncertainty to a confident shortlist as qui
 
 Given the time constraints, I intentionally did not build:
 
-* Vehicle comparison tables
 * Detailed specification pages
 * Dealer integrations
 * Price prediction models
@@ -351,7 +371,7 @@ I would add:
 * Hybrid Retrieval (Metadata + Vector Search)
 * Session Sidebar
 * Multi-Turn Agent Memory
-* Vehicle Comparison Agent
+* Compare-by-conversation (e.g. "compare the Nexon and the Creta" routed via a LangGraph intent node)
 * Review Summarization Agent
 * Recommendation Explanations with Citations
 * Streaming Responses
