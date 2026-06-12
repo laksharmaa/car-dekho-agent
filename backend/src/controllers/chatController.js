@@ -1,6 +1,4 @@
-const { processRequirement } = require("../agents/requirementAgent");
-const { retrieveCars } = require("../agents/retrievalAgent");
-const { recommendCars } = require("../agents/recommendationAgent");
+const { runRecommendationGraph } = require("../graphs/recommendationGraph");
 const Session = require("../models/Session");
 
 const chat = async (req, res) => {
@@ -12,31 +10,9 @@ const chat = async (req, res) => {
       return res.status(400).json({ message: "Query required" });
     }
 
-    // Extract embedding + structured filters from query
-    const requirement = await processRequirement(query);
+    console.log(`[chatController] user=${userId} | query="${query}"`);
 
-    console.log("Extracted requirements:", {
-      maxPrice: requirement.maxPrice,
-      minPrice: requirement.minPrice,
-      bodyType: requirement.bodyType,
-      fuelType: requirement.fuelType,
-      minMileage: requirement.minMileage,
-      minSafetyRating: requirement.minSafetyRating,
-      useCase: requirement.useCase,
-    });
-
-    // Pass filters into retrieval so DB enforces hard constraints
-    const filters = {
-      maxPrice: requirement.maxPrice,
-      minPrice: requirement.minPrice,
-      bodyType: requirement.bodyType,
-      fuelType: requirement.fuelType,
-      minMileage: requirement.minMileage,
-      minSafetyRating: requirement.minSafetyRating,
-    };
-
-    const cars = await retrieveCars(requirement.embedding, filters);
-    const recommendation = await recommendCars(query, cars, history || []);
+    const { recommendation, cars } = await runRecommendationGraph(query, history || []);
 
     await Session.findOneAndUpdate(
       { userId },
@@ -53,9 +29,11 @@ const chat = async (req, res) => {
       { upsert: true, new: true }
     );
 
+    console.log(`[chatController] saved session message pair for user=${userId}`);
+
     res.json({ success: true, recommendation, cars });
   } catch (error) {
-    console.error(error);
+    console.error("[chatController] error:", error);
     res.status(500).json({ message: "Server Error" });
   }
 };

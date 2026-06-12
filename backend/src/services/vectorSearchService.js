@@ -1,5 +1,11 @@
 const Car = require("../models/Car");
 
+// Pure retrieval: given an embedding + hard filters, return matching cars.
+// NOTE: the "0 results -> relax budget by 20% -> retry" behaviour used to
+// live here as a hidden second query. It now lives in the LangGraph
+// orchestration (graphs/recommendationGraph.js) as an explicit
+// `relaxFilters` node + conditional edge, so the retry is visible in logs
+// and traceable as part of the graph instead of being buried in the DB layer.
 const searchCars = async (queryEmbedding, filters = {}) => {
   const {
     maxPrice,
@@ -10,7 +16,6 @@ const searchCars = async (queryEmbedding, filters = {}) => {
     minSafetyRating,
   } = filters;
 
-  // Build hard filter — only apply constraints that were actually extracted
   const matchFilter = {};
 
   if (maxPrice !== null && maxPrice !== undefined) {
@@ -33,11 +38,10 @@ const searchCars = async (queryEmbedding, filters = {}) => {
   }
 
   const hasFilters = Object.keys(matchFilter).length > 0;
+  console.log("[vectorSearchService] matchFilter:", hasFilters ? matchFilter : "(none — pure vector search)");
 
-  // Strategy 1: vector search + post-filter (when filters exist)
-  // Fetch more candidates so filtering still yields enough results
   if (hasFilters) {
-    const results = await Car.aggregate([
+    return Car.aggregate([
       {
         $vectorSearch: {
           index: "car_index",
@@ -47,44 +51,13 @@ const searchCars = async (queryEmbedding, filters = {}) => {
           limit: 20,          // fetch more before filtering
         },
       },
-      {
-        $match: matchFilter,  // apply hard constraints after vector ranking
-      },
-      {
-        $limit: 5,
-      },
-      {
-        $project: { embedding: 0 },
-      },
+      { $match: matchFilter },
+      { $limit: 5 },
+      { $project: { embedding: 0 } },
     ]);
-
-    // Fallback: if strict filters return nothing, relax and try again
-    if (results.length === 0 && maxPrice) {
-      console.log("Strict filter returned 0 results, relaxing budget by 20%...");
-      const relaxedFilter = {
-        ...matchFilter,
-        price: { $lte: maxPrice * 1.2 },
-      };
-      return Car.aggregate([
-        {
-          $vectorSearch: {
-            index: "car_index",
-            path: "embedding",
-            queryVector: queryEmbedding,
-            numCandidates: 100,
-            limit: 20,
-          },
-        },
-        { $match: relaxedFilter },
-        { $limit: 5 },
-        { $project: { embedding: 0 } },
-      ]);
-    }
-
-    return results;
   }
 
-  // Strategy 2: pure vector search when no filters extracted
+  // Pure vector search when no filters extracted
   return Car.aggregate([
     {
       $vectorSearch: {
@@ -95,9 +68,7 @@ const searchCars = async (queryEmbedding, filters = {}) => {
         limit: 5,
       },
     },
-    {
-      $project: { embedding: 0 },
-    },
+    { $project: { embedding: 0 } },
   ]);
 };
 
