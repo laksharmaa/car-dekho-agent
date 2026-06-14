@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
-import api, { setAuthToken } from "./api/api";
+import api, { setAuthToken, streamChat } from "./api/api";
 
 import Spinner from "./components/Spinner";
 import LoginScreen from "./components/LoginScreen";
@@ -26,42 +26,66 @@ export default function App() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [streaming, setStreaming] = useState(false);
   const [started, setStarted] = useState(false);
   const [sessionLoading, setSessionLoading] = useState(false);
 
-  // ── Compare feature state ──────────────────────────────────
-  const [selectedCars, setSelectedCars] = useState([]); // max 2
+  const [selectedCars, setSelectedCars] = useState([]);
   const [showCompare, setShowCompare] = useState(false);
 
-  const bottomRef = useRef(null);
   const inputRef = useRef(null);
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading]);
+  // NEW
+  const messagesContainerRef = useRef(null);
+  const shouldAutoScrollRef = useRef(true);
 
-  // Once authenticated, set token + load session
+  // Auto-scroll only when a new message is added
+  useEffect(() => {
+    const el = messagesContainerRef.current;
+    if (!el) return;
+
+    if (shouldAutoScrollRef.current) {
+      el.scrollTop = el.scrollHeight;
+    }
+  }, [messages.length, loading]);
+
+  const handleScroll = () => {
+    const el = messagesContainerRef.current;
+    if (!el) return;
+
+    const threshold = 100;
+
+    shouldAutoScrollRef.current =
+      el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
+  };
+
   useEffect(() => {
     if (!isAuthenticated) return;
 
     const init = async () => {
       setSessionLoading(true);
+
       try {
         const token = await getAccessTokenSilently();
         setAuthToken(token);
 
         const { data } = await api.get("/session");
+
         if (data.messages && data.messages.length > 0) {
           const uiMessages = data.messages.map((m) =>
             m.role === "user"
               ? { role: "user", content: m.content }
-              : { role: "assistant", recommendation: m.content, cars: m.cars || [] }
+              : {
+                  role: "assistant",
+                  recommendation: m.content,
+                  cars: m.cars || [],
+                }
           );
+
           setMessages(uiMessages);
           setStarted(true);
         }
       } catch (err) {
-        // No session yet or network error — start fresh silently
         console.error("Session load error:", err);
       } finally {
         setSessionLoading(false);
@@ -71,20 +95,15 @@ export default function App() {
     init();
   }, [isAuthenticated, getAccessTokenSilently]);
 
-  // Auth0 SDK still initializing
   if (isLoading) return <Spinner />;
-
-  // Not logged in — show login screen
-  if (!isAuthenticated) {
+  if (!isAuthenticated)
     return <LoginScreen onLogin={() => loginWithRedirect()} />;
-  }
-
-  // Loading saved session
   if (sessionLoading) return <Spinner />;
 
   const send = async (query) => {
     const q = (query || input).trim();
-    if (!q || loading) return;
+
+    if (!q || loading || streaming) return;
 
     try {
       const token = await getAccessTokenSilently();
@@ -96,30 +115,121 @@ export default function App() {
     setStarted(true);
     setInput("");
 
-    const updatedMessages = [...messages, { role: "user", content: q }];
-    setMessages(updatedMessages);
-    setLoading(true);
-
-    // Build history in the format backend expects — exclude the message we just added
     const history = messages.map((m) => ({
       role: m.role,
-      content: m.role === "assistant" ? m.recommendation : m.content,
+      content:
+        m.role === "assistant" ? m.recommendation : m.content,
     }));
 
+    setMessages((prev) => [
+      ...prev,
+      { role: "user", content: q },
+    ]);
+
+    setLoading(true);
+
+    let assistantIndex = -1;
+
     try {
-      const { data } = await api.post("/chat", { query: q, history });
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", recommendation: data.recommendation, cars: data.cars },
-      ]);
+      await streamChat(q, history, {
+        onCars: (cars) => {
+          setLoading(false);
+          setStreaming(true);
+
+          setMessages((prev) => {
+            assistantIndex = prev.length;
+
+            return [
+              ...prev,
+              {
+                role: "assistant",
+                recommendation: "",
+                cars,
+              },
+            ];
+          });
+        },
+
+        onToken: (token) => {
+          setMessages((prev) => {
+            if (assistantIndex === -1) return prev;
+
+            const next = [...prev];
+
+            next[assistantIndex] = {
+              ...next[assistantIndex],
+              recommendation:
+                next[assistantIndex].recommendation + token,
+            };
+
+            return next;
+          });
+
+          requestAnimationFrame(() => {
+            const el = messagesContainerRef.current;
+
+            if (el && shouldAutoScrollRef.current) {
+              el.scrollTop = el.scrollHeight;
+            }
+          });
+        },
+
+        onDone: () => {
+          setStreaming(false);
+          setLoading(false);
+
+          setTimeout(() => {
+            inputRef.current?.focus();
+          }, 100);
+        },
+
+        onError: (message) => {
+          setLoading(false);
+          setStreaming(false);
+
+          setMessages((prev) => {
+            if (assistantIndex !== -1) {
+              const next = [...prev];
+
+              next[assistantIndex] = {
+                ...next[assistantIndex],
+                recommendation:
+                  message ||
+                  "Could not connect to server. Please try again.",
+              };
+
+              return next;
+            }
+
+            return [
+              ...prev,
+              {
+                role: "assistant",
+                recommendation:
+                  "Could not connect to server. Please try again.",
+                cars: [],
+              },
+            ];
+          });
+
+          setTimeout(() => {
+            inputRef.current?.focus();
+          }, 100);
+        },
+      });
     } catch {
+      setLoading(false);
+      setStreaming(false);
+
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", recommendation: "Could not connect to server. Please try again.", cars: [] },
+        {
+          role: "assistant",
+          recommendation:
+            "Could not connect to server. Please try again.",
+          cars: [],
+        },
       ]);
-    } finally {
-      setLoading(false);
-      setTimeout(() => inputRef.current?.focus(), 100);
     }
   };
 
@@ -129,6 +239,7 @@ export default function App() {
     } catch (err) {
       console.error("Clear session error:", err);
     }
+
     setMessages([]);
     setStarted(false);
     setInput("");
@@ -136,48 +247,76 @@ export default function App() {
     setShowCompare(false);
   };
 
-  // ── Compare handlers ──────────────────────────────────────
   const toggleCompare = (car) => {
     setSelectedCars((prev) => {
-      const exists = prev.some((c) => carKey(c) === carKey(car));
-      if (exists) return prev.filter((c) => carKey(c) !== carKey(car));
-      if (prev.length >= 2) return prev; // already 2 selected
+      const exists = prev.some(
+        (c) => carKey(c) === carKey(car)
+      );
+
+      if (exists) {
+        return prev.filter(
+          (c) => carKey(c) !== carKey(car)
+        );
+      }
+
+      if (prev.length >= 2) return prev;
+
       return [...prev, car];
     });
   };
 
   const removeFromCompare = (car) => {
-    setSelectedCars((prev) => prev.filter((c) => carKey(c) !== carKey(car)));
+    setSelectedCars((prev) =>
+      prev.filter((c) => carKey(c) !== carKey(car))
+    );
   };
 
   const clearCompare = () => setSelectedCars([]);
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "var(--bg)" }}>
+    <div
+      className="min-h-screen flex flex-col"
+      style={{ background: "var(--bg)" }}
+    >
       <Header
         started={started}
         onReset={reset}
         user={user}
-        onLogout={() => logout({ logoutParams: { returnTo: window.location.origin } })}
+        onLogout={() =>
+          logout({
+            logoutParams: {
+              returnTo: window.location.origin,
+            },
+          })
+        }
       />
 
       <main className="flex-1 flex flex-col overflow-hidden">
-        {!started && <EmptyState onSuggestionClick={send} />}
+        {!started && (
+          <EmptyState onSuggestionClick={send} />
+        )}
 
         {started && (
-          <div className="flex-1 overflow-y-auto px-5 py-6">
+          <div
+            ref={messagesContainerRef}
+            onScroll={handleScroll}
+            className="flex-1 overflow-y-auto px-5 py-6"
+          >
             {messages.map((msg, i) => (
               <Message
                 key={i}
                 msg={msg}
                 selectedCars={selectedCars}
                 onToggleCompare={toggleCompare}
+                isStreaming={
+                  streaming &&
+                  i === messages.length - 1 &&
+                  msg.role === "assistant"
+                }
               />
             ))}
 
             {loading && <ThinkingIndicator />}
-
-            <div ref={bottomRef} />
           </div>
         )}
 
@@ -193,7 +332,7 @@ export default function App() {
           value={input}
           onChange={setInput}
           onSend={send}
-          loading={loading}
+          loading={loading || streaming}
         />
       </main>
 

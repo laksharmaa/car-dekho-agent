@@ -1,19 +1,16 @@
 const { StateGraph, Annotation, START, END } = require("@langchain/langgraph");
 const { processRequirement } = require("../agents/requirementAgent");
 const { retrieveCars } = require("../agents/retrievalAgent");
-const { recommendCars } = require("../agents/recommendationAgent");
 
 /**
  * Shared state that flows through every node of the graph.
  *
- * query        - the raw user query
- * history      - prior chat messages, passed to the recommendation step
- * requirement  - structured filters + embedding extracted from the query
- * filters      - the (possibly relaxed) hard filters passed to retrieval
- * cars         - cars returned by the most recent retrieval
- * relaxed      - whether we've already attempted a budget relaxation,
- *                so we only ever retry once
- * recommendation - final LLM-generated recommendation text
+ * NOTE: The "recommend" node has been removed from the graph.
+ * The controller now calls generateRecommendationStream() directly
+ * after the graph returns, so the SSE response can be piped in real time.
+ *
+ * The graph is now responsible only for:
+ *   requirement extraction → retrieval → (optional budget relaxation + retry)
  */
 const GraphState = Annotation.Root({
   query: Annotation,
@@ -22,7 +19,6 @@ const GraphState = Annotation.Root({
   filters: Annotation,
   cars: Annotation,
   relaxed: Annotation,
-  recommendation: Annotation,
 });
 
 // ── Node: extract structured requirements + embedding from the query ──────
@@ -70,8 +66,8 @@ function routeAfterRetrieval(state) {
     return "relax";
   }
 
-  console.log("[graph] decision → proceeding to recommend");
-  return "recommend";
+  console.log("[graph] decision → done, returning cars to controller");
+  return "done";
 }
 
 // ── Node: relax the budget filter by 20% and loop back to retrieval ───────
@@ -88,38 +84,28 @@ async function relaxFiltersNode(state) {
   };
 }
 
-// ── Node: generate the final natural-language recommendation ──────────────
-async function recommendNode(state) {
-  console.log("[graph] node → recommend");
-
-  const recommendation = await recommendCars(state.query, state.cars, state.history || []);
-
-  return { recommendation };
-}
-
 const graph = new StateGraph(GraphState)
   .addNode("extractRequirements", extractRequirementsNode)
   .addNode("retrieveCars", retrieveCarsNode)
   .addNode("relaxFilters", relaxFiltersNode)
-  .addNode("recommend", recommendNode)
   .addEdge(START, "extractRequirements")
   .addEdge("extractRequirements", "retrieveCars")
   .addConditionalEdges("retrieveCars", routeAfterRetrieval, {
     relax: "relaxFilters",
-    recommend: "recommend",
+    done: END,
   })
-  .addEdge("relaxFilters", "retrieveCars")
-  .addEdge("recommend", END);
+  .addEdge("relaxFilters", "retrieveCars");
 
 const compiledGraph = graph.compile();
 
 /**
- * Runs the full requirement -> retrieval -> (optional relax/retry) -> recommend
- * pipeline for a single user query.
+ * Runs requirement extraction → retrieval → (optional relax/retry).
+ * Does NOT call the LLM for recommendation — that is the controller's job
+ * so it can stream tokens directly to the HTTP response.
  *
- * @param {string} query - the user's message
- * @param {Array<{role: string, content: string}>} history - prior chat turns
- * @returns {Promise<{ recommendation: string, cars: any[], requirement: object, filters: object }>}
+ * @param {string} query
+ * @param {Array<{role: string, content: string}>} history
+ * @returns {Promise<{ cars: any[], requirement: object, filters: object, relaxed: boolean }>}
  */
 const runRecommendationGraph = async (query, history = []) => {
   console.log(`\n========== [recommendationGraph] START ==========`);
