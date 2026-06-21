@@ -221,13 +221,9 @@ Create a `.env` file:
 ```env
 
 PORT=5000
-
 MONGODB_URI=
-
 GROQ_API_KEY=
-
 AUTH0_DOMAIN=
-
 AUTH0_AUDIENCE=
 
 ```
@@ -257,11 +253,8 @@ Create a `.env` file:
 ```env
 
 VITE_API_URL=
-
 VITE_AUTH0_DOMAIN=
-
 VITE_AUTH0_CLIENT_ID=
-
 VITE_AUTH0_AUDIENCE=
 
 ```
@@ -282,10 +275,25 @@ npm run seed
 
 This will populate MongoDB with vehicle data and generate embeddings for semantic search.
 
-
-
 ---
 
+## Docker Setup
+
+### Development mode (live reload)
+
+Run from the repository root
+
+```bash
+docker compose up --build
+```
+
+### Production-style build
+
+If you want the base production setup without the dev overrides:
+
+```bash
+docker compose -f docker-compose.yml up --build
+```
 
 
 ## Vehicle Comparison

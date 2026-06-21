@@ -5,12 +5,15 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon src/server.js"
+    "dev": "nodemon src/server.js",
+    "start": "nodemon src/server.js",
+    "start:prod": "node src/server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "uuid": "8.3.2",
     "@langchain/core": "^1.1.48",
     "@langchain/groq": "^1.2.1",
     "@langchain/langgraph": "^1.4.1",
