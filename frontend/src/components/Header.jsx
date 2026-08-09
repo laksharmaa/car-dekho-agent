@@ -9,7 +9,7 @@ export default function Header({ started, onReset, user, onLogout }) {
         </div>
         <div className="leading-none">
           <span className="font-bold text-[15px] text-[var(--text)] tracking-tight">car</span>
-          <span className="font-bold text-[15px] text-[var(--red)] tracking-tight">dekho</span>
+          <span className="font-bold text-[15px] text-[var(--red)] tracking-tight">agent</span>
         </div>
       </div>
 
