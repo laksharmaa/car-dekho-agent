@@ -36,52 +36,77 @@ api.interceptors.request.use((config) => {
  * @param {Function} callbacks.onError   (message: string) => void
  */
 export async function streamChat(query, history, { onCars, onToken, onDone, onError }) {
-  const response = await fetch(`${BASE_URL}/chat`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(  _token ? { Authorization: `Bearer ${_token}` } : {}),
-    },
-    body: JSON.stringify({ query, history }),
-  });
+  try {
+    const response = await fetch(`${BASE_URL}/chat`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(  _token ? { Authorization: `Bearer ${_token}` } : {}),
+      },
+      body: JSON.stringify({ query, history }),
+    });
 
-  if (!response.ok) {
-    onError?.(`Server error: ${response.status}`);
-    return;
-  }
-
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-
-  // ReadableStream is consumed chunk by chunk. Each chunk may contain
-  // multiple SSE lines or a partial line — we buffer and split on \n\n.
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-
-    buffer += decoder.decode(value, { stream: true });
-
-    // SSE events are delimited by double newlines
-    const events = buffer.split("\n\n");
-    // The last element might be an incomplete event — keep it in the buffer
-    buffer = events.pop();
-
-    for (const event of events) {
-      const line = event.trim();
-      if (!line.startsWith("data:")) continue;
+    if (!response.ok) {
+      let errorMessage = `Server error: ${response.status}`;
 
       try {
-        const payload = JSON.parse(line.slice("data:".length).trim());
-
-        if (payload.type === "cars")  onCars?.(payload.cars);
-        if (payload.type === "token") onToken?.(payload.token);
-        if (payload.type === "done")  onDone?.();
-        if (payload.type === "error") onError?.(payload.message);
+        const text = await response.text();
+        if (text) {
+          try {
+            const parsed = JSON.parse(text);
+            errorMessage = parsed.error || parsed.message || errorMessage;
+          } catch {
+            errorMessage = text;
+          }
+        }
       } catch {
-        // malformed JSON — skip
+        // ignore and fall back to the default message
+      }
+
+      onError?.(errorMessage);
+      return;
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    // ReadableStream is consumed chunk by chunk. Each chunk may contain
+    // multiple SSE lines or a partial line — we buffer and split on \n\n.
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+
+      // SSE events are delimited by double newlines
+      const events = buffer.split("\n\n");
+      // The last element might be an incomplete event — keep it in the buffer
+      buffer = events.pop();
+
+      for (const event of events) {
+        const line = event.trim();
+        if (!line.startsWith("data:")) continue;
+
+        try {
+          const payload = JSON.parse(line.slice("data:".length).trim());
+
+          if (payload.type === "cars")  onCars?.(payload.cars);
+          if (payload.type === "token") onToken?.(payload.token);
+          if (payload.type === "done")  onDone?.();
+          if (payload.type === "error") onError?.(payload.message);
+        } catch {
+          // malformed JSON — skip
+        }
       }
     }
+  } catch (error) {
+    const message = error?.message || "Could not connect to server. Please try again.";
+    const friendlyMessage = message.includes("Failed to fetch")
+      ? "Request was rejected by the server. Please shorten your message and try again."
+      : message;
+
+    onError?.(friendlyMessage);
   }
 }
 
