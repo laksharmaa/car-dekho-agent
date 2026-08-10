@@ -1,6 +1,7 @@
 const { runRecommendationGraph } = require("../graphs/recommendationGraph");
 const { generateRecommendationStream, NO_CARS_MESSAGE } = require("../services/groqService");
 const Session = require("../models/Session");
+const { consumeTokenBudget, DEFAULT_MAX_OUTPUT_TOKENS } = require("../utils/tokenBudget");
 
 /**
  * POST /api/chat  (SSE streaming)
@@ -25,7 +26,20 @@ const chat = async (req, res) => {
     return res.status(400).json({ message: "Query required" });
   }
 
-  console.log(`[chatController] user=${userId} | query="${query}"`);
+  const budget = consumeTokenBudget(userId, {
+    query,
+    history: history || [],
+    responseLimit: DEFAULT_MAX_OUTPUT_TOKENS,
+  });
+
+  if (!budget.allowed) {
+    return res.status(429).json({
+      error: "Token budget exceeded for this hour. Please try again later.",
+      remaining: budget.remaining,
+    });
+  }
+
+  console.log(`[chatController] user=${userId} | query="${query}" | budgetCost=${budget.cost} remaining=${budget.remaining}`);
 
   // ── SSE headers ──────────────────────────────────────────────────────────
   res.setHeader("Content-Type", "text/event-stream");

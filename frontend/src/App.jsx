@@ -121,10 +121,11 @@ export default function App() {
         m.role === "assistant" ? m.recommendation : m.content,
     }));
 
-    setMessages((prev) => [
-      ...prev,
-      { role: "user", content: q },
-    ]);
+    setMessages((prev) => {
+      const next = [...prev];
+      next.push({ role: "user", content: q });
+      return next;
+    });
 
     setLoading(true);
 
@@ -188,25 +189,27 @@ export default function App() {
           setStreaming(false);
 
           setMessages((prev) => {
-            if (assistantIndex !== -1) {
-              const next = [...prev];
+            const next = [...prev];
+            const fallbackMessage = message || "Could not connect to server. Please try again.";
 
+            const lastUserMessageIndex = next.findLastIndex((item) => item.role === "user");
+            if (lastUserMessageIndex !== -1) {
+              next.splice(lastUserMessageIndex, 1);
+            }
+
+            if (assistantIndex !== -1) {
               next[assistantIndex] = {
                 ...next[assistantIndex],
-                recommendation:
-                  message ||
-                  "Could not connect to server. Please try again.",
+                recommendation: fallbackMessage,
               };
-
               return next;
             }
 
             return [
-              ...prev,
+              ...next,
               {
                 role: "assistant",
-                recommendation:
-                  "Could not connect to server. Please try again.",
+                recommendation: fallbackMessage,
                 cars: [],
               },
             ];
